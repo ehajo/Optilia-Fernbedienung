@@ -1,0 +1,12 @@
+Optilia Kamera Ansteuerung
+
+Baudrate 9600
+
+Schwarz: 5V
+Rot: GND
+Gn: Tx (tbd)
+Wt: Rx (tbd)
+
+Befehle siehe Calc-Tabelle
+
+Umschaltung Helligkeit/Zoom erfolgt auf der Platine (kein UART-Befehl).
