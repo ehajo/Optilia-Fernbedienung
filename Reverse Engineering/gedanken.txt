@@ -10,3 +10,8 @@ Wt: Rx (tbd)
 Befehle siehe Calc-Tabelle
 
 Umschaltung Helligkeit/Zoom erfolgt auf der Platine (kein UART-Befehl).
+
+Dank aufmerksamer Zuschauer konnte herausgefunden werden, 
+dass es sich bei dem Protokoll der Kamera um das Visca-Protokoll für Sony-Cams handelt.
+
+Im Speziellen um die Ansteuerung für die Kamera Sony FCB-EV5500, welches wir dank Vendor und Product ID rausfinden konnten.
