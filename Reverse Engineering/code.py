@@ -66,21 +66,10 @@ def send_zoom_command(level):
     uart.write(bytearray(command))
     print(f"Zoom auf {level}x gesendet: {command}")
 
-# Funktion zur Analyse des Rückmeldungsbefehls
-def analyze_feedback(data):
-    # Rückmeldung analysieren (Zoom-Wert dekodieren)
-    if len(data) >= 7 and data[0] == 0x90 and data[1] == 0x50:
-        zoom_value = (data[2] << 12) | (data[3] << 8) | (data[4] << 4) | data[5]
-        zoom_level = None
-        for level, value in ZOOM_LEVELS.items():
-            if abs(value - zoom_value) <= 200:  # Toleranz für kleinere Abweichungen
-                zoom_level = level
-                break
-        print(f"Rückmeldung: Zoomstufe erreicht = {zoom_level}x (Wert: 0x{zoom_value:04X})")
-    else:
-        print("Unbekannte Rückmeldung:", data)
 
 # Hauptprogramm: Steuerung mit Rückmeldungsanalyse
+# Autofokus einschalten:
+uart.write(bytearray([0x81,0x01,0x04,0x38,0x02,0xFF]))
 last_zoom_level = None
 while True:
     # Zoomstufe berechnen und senden
@@ -90,10 +79,5 @@ while True:
         send_zoom_command(current_zoom_level)
         last_zoom_level = current_zoom_level
 
-    # Rückmeldung empfangen
-    if uart.in_waiting > 0:
-        feedback = uart.read(8)  # Rückmeldung lesen (VISCA hat meist 8 Bytes)
-        if feedback:
-            analyze_feedback(feedback)
     
-    time.sleep(0.1)  # Kurze Verzögerung für Stabilität
+    time.sleep(0.2)  # Kurze Verzögerung für Stabilität
