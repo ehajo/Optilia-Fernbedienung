@@ -1,0 +1,362 @@
+CAMPlot
+-------
+
+Report Written : 20.01.2025 22:22:03
+Design Path    : C:\Users\Hannes\Documents\GitHub\Optilia-Fernbedienung\Platine\visca-controller.pcb
+Design Title   : 
+Created        : 20.01.2025 20:26:23
+Last Saved     : 20.01.2025 22:22:01
+Editing Time   : 115 min
+
+Formatting Information
+----------------------
+
+    Gerber Output
+    -------------
+
+    Pulsonix 12.5 Gerber.dll 9449
+    3.5 Format Absolute millimetres.
+    Omit Leading zeroes.
+    G01 assumed throughout.
+    Line termination <*> <CR> <LF>.
+    Aperture table defined in output file (RS-274-X).
+    Hardware arcs allowed.
+
+    Excellon Drill Output
+    ---------------------
+
+    Pulsonix 12.5 NCDrill.dll 9449
+    3.5 Format Absolute Metric.
+    Omit leading zeros
+    Tool sizes are in     mm
+
+
+Plot Details
+------------
+
+    Gerber Output
+    -------------
+
+    Output File:     C:\Users\Hannes\Documents\GitHub\Optilia-Fernbedienung\Platine\003-CAM\visca-controller(Top).gbr
+    Plot Name:       Top
+
+    Contains:        Top
+
+    Scale:           1.000
+    Mirrored:        No
+    Rotated:         No
+    Offset:          -404.66+    -435.71mm
+    Step & Repeat:   Not used
+
+
+    D-Code   Description
+
+    D14      Round 0.50
+    D15      Round 0.30
+    D16      Round 0.25+
+    D17      Round 0.60
+    D18      Round 0.70
+    D19      Round 0.64-
+    D70      Round 0.41-
+    D71      Round 1.27
+    D20      Round 0.30+
+    D21      Round 0.15+
+    D22      Round 0.20+
+    D23      Round 1.70
+    D24      Rectangle 0.90 x 1.40 Rotation 90
+    D25      Rectangle 0.35 x 1.60
+    D26      Round 3.50
+    D27      Square 1.91-
+    D28      Octagon 1.91-
+    D29      Rectangle 0.90 x 1.40
+    D72      Square 2.00
+    D73      Round 2.00
+    D74      Rectangle 2.30 x 2.50 Rotation 90
+    D75      Round 3.25
+
+    Gerber Output
+    -------------
+
+    Output File:     C:\Users\Hannes\Documents\GitHub\Optilia-Fernbedienung\Platine\003-CAM\visca-controller(Bottom).gbr
+    Plot Name:       Bottom
+
+    Contains:        Bottom
+
+    Scale:           1.000
+    Mirrored:        No
+    Rotated:         No
+    Offset:          -404.66+    -435.71mm
+    Step & Repeat:   Not used
+
+
+    D-Code   Description
+
+    D14      Round 0.50
+    D15      Round 0.30
+    D17      Round 0.60
+    D18      Round 0.70
+    D19      Round 0.64-
+    D70      Round 0.41-
+    D23      Round 1.70
+    D26      Round 3.50
+    D27      Square 1.91-
+    D28      Octagon 1.91-
+    D72      Square 2.00
+    D73      Round 2.00
+    D75      Round 3.25
+
+    Gerber Output
+    -------------
+
+    Output File:     C:\Users\Hannes\Documents\GitHub\Optilia-Fernbedienung\Platine\003-CAM\visca-controller(Silkscreen Top).gbr
+    Plot Name:       Silkscreen Top
+
+    Contains:        Silkscreen Top
+
+    Scale:           1.000
+    Mirrored:        No
+    Rotated:         No
+    Offset:          -404.66+    -435.71mm
+    Step & Repeat:   Not used
+
+
+    D-Code   Description
+
+    D10      Round 0.30
+    D11      Round 0.00+
+    D12      Round 0.20
+    D13      Round 0.20
+    D76      Round 0.20+
+    D77      Round 0.25+
+    D78      Round 0.25
+
+    Gerber Output
+    -------------
+
+    Output File:     C:\Users\Hannes\Documents\GitHub\Optilia-Fernbedienung\Platine\003-CAM\visca-controller(Solder Mask Top).gbr
+    Plot Name:       Solder Mask Top
+
+    Contains:        Solder Mask Top
+
+    Scale:           1.000
+    Mirrored:        No
+    Rotated:         No
+    Offset:          -404.66+    -435.71mm
+    Step & Repeat:   Not used
+
+
+    D-Code   Description
+
+    D76      Round 0.85+
+    D77      Round 0.95+
+    D78      Round 1.95+
+    D79      Rectangle 1.15+ x 1.65+ Rotation 90
+    D80      Rectangle 0.60+ x 1.85+
+    D81      Round 3.75+
+    D82      Square 2.16-
+    D83      Octagon 1.91-
+    D84      Rectangle 1.15+ x 1.65+
+    D85      Square 2.25+
+    D86      Round 2.25+
+    D87      Rectangle 2.55+ x 2.75+ Rotation 90
+    D88      Round 3.50+
+
+    Gerber Output
+    -------------
+
+    Output File:     C:\Users\Hannes\Documents\GitHub\Optilia-Fernbedienung\Platine\003-CAM\visca-controller(Paste Mask Top).gbr
+    Plot Name:       Paste Mask Top
+
+    Contains:        Paste Mask Top
+
+    Scale:           1.000
+    Mirrored:        No
+    Rotated:         No
+    Offset:          -404.66+    -435.71mm
+    Step & Repeat:   Not used
+
+
+    D-Code   Description
+
+    D24      Rectangle 0.90 x 1.40 Rotation 90
+    D25      Rectangle 0.35 x 1.60
+    D29      Rectangle 0.90 x 1.40
+    D74      Rectangle 2.30 x 2.50 Rotation 90
+
+    Gerber Output
+    -------------
+
+    Output File:     C:\Users\Hannes\Documents\GitHub\Optilia-Fernbedienung\Platine\003-CAM\visca-controller(Silkscreen Bottom).gbr
+    Plot Name:       Silkscreen Bottom
+
+    Contains:        Silkscreen Bottom
+
+    Scale:           1.000
+    Mirrored:        No
+    Rotated:         No
+    Offset:          -404.66+    -435.71mm
+    Step & Repeat:   Not used
+
+
+    D-Code   Description
+
+    D10      Round 0.30
+    D12      Round 0.20
+    D76      Round 0.45
+    D77      Round 0.10
+
+    Gerber Output
+    -------------
+
+    Output File:     C:\Users\Hannes\Documents\GitHub\Optilia-Fernbedienung\Platine\003-CAM\visca-controller(Solder Mask Bottom).gbr
+    Plot Name:       Solder Mask Bottom
+
+    Contains:        Solder Mask Bottom
+
+    Scale:           1.000
+    Mirrored:        No
+    Rotated:         No
+    Offset:          -404.66+    -435.71mm
+    Step & Repeat:   Not used
+
+
+    D-Code   Description
+
+    D76      Round 0.85+
+    D77      Round 0.95+
+    D78      Round 1.95+
+    D79      Round 3.75+
+    D80      Square 2.16-
+    D81      Octagon 1.91-
+    D82      Square 2.25+
+    D83      Round 2.25+
+    D84      Round 3.50+
+
+    Gerber Output
+    -------------
+
+    Output File:     C:\Users\Hannes\Documents\GitHub\Optilia-Fernbedienung\Platine\003-CAM\visca-controller(Paste Mask Bottom).gbr
+    Plot Name:       Paste Mask Bottom
+
+    Contains:        Paste Mask Bottom
+
+    Scale:           1.000
+    Mirrored:        No
+    Rotated:         No
+    Offset:          -404.66+    -435.71mm
+    Step & Repeat:   Not used
+
+
+    No items output.
+
+    Gerber Output
+    -------------
+
+    Output File:     C:\Users\Hannes\Documents\GitHub\Optilia-Fernbedienung\Platine\003-CAM\visca-controller(Drill Drawing).gbr
+    Plot Name:       Drill Drawing
+
+    Contains:        <Through Hole>
+
+    Scale:           1.000
+    Mirrored:        No
+    Rotated:         No
+    Offset:          -404.66+    -435.71mm
+    Step & Repeat:   Not used
+
+
+    D-Code   Description
+
+    D73      Round 2.00
+    D76      Round 0.30
+    D77      Round 0.10
+    D78      Round 0.40
+    D79      Round 3.10
+    D80      Round 1.00
+    D81      Round 2.60
+    D82      Round 1.10
+    D83      Round 1.20
+    D84      Round 2.50
+
+    Drill Table
+    -----------
+    Diam (thou)	Qty	Id	Plated
+
+    11.8	58  	AC	Yes
+    15.7	1   	A	Yes
+    39.4	54  	I	Yes
+    39.4	8   	AF	No
+    43.3	4   	J	Yes
+    47.2	24  	L	Yes
+    78.7	2   	W	Yes
+    98.4	2   	AA	No
+    102.4	2   	AE	Yes
+    122.0	4   	Q	No
+
+
+
+    Excellon Drill Output
+    ---------------------
+
+    Output File:     C:\Users\Hannes\Documents\GitHub\Optilia-Fernbedienung\Platine\003-CAM\visca-controller(Through Hole).drl
+    Plot Name:       <Through Hole>
+
+    Contains:        <Through Hole>
+
+    Drill Type:      All
+    Scale:           1.000
+    Mirrored:        No
+    Rotated:         No
+    Offset:          -404.66+    -435.71mm
+    Step & Repeat:   Not used
+
+
+    Format     1
+    FMAT statement included in output.
+    Tool sizes included in output.
+
+    Tool          Size     Count  Plated
+
+    T001        000.30000    58     Y
+    T002        000.40000     1     Y
+    T003        001.00000    54     Y
+    T004        001.00000     8     
+    T005        001.10000     4     Y
+    T006        001.20000    24     Y
+    T007        002.00000     2     Y
+    T008        002.50000     2     
+    T009        002.60000     2     Y
+    T010        003.10000     4     
+
+Summary Information
+-------------------
+
+    Outputs covered by CAM Plots
+    ----------------------------
+
+    Top: Gerber, Artwork, Enabled
+    Bottom: Gerber, Artwork, Enabled
+    Silkscreen Top: Gerber, Artwork, Enabled
+    Solder Mask Top: Gerber, Artwork, Enabled
+    Paste Mask Top: Gerber, Artwork, Enabled
+    Silkscreen Bottom: Gerber, Artwork, Enabled
+    Solder Mask Bottom: Gerber, Artwork, Enabled
+    Paste Mask Bottom: Gerber, Artwork, Enabled
+    Documentation: Windows, Artwork
+    <Through Hole>: Excellon, Drill, Enabled
+    Drill Drawing: Gerber, Drill Drawing, Enabled
+    ass_top: PDF, Artwork
+    ass_bot: PDF, Artwork
+
+    Outputs not covered by CAM Plots
+    --------------------------------
+
+    Layer Wires Top
+    Layer Pin Names
+    Layer PCB
+    Layer Pin Names (Bottom)
+    Layer Wires Bottom
+    Layer Construction Lines
+
+Plotting took 0.211 Seconds
+
+                ---------------- End Of Report ----------------
