@@ -2,11 +2,11 @@ Hardwareanforderungen für Visca-Platine:
 
 Raspberry Pi Pico W
 
-- Potentiometer (für zB Zoomstufe)
-- Inkrementalgeber mit Tastefunktion (Für zB Menü, ...)
-- OLED-Display 0,96"
-- Tasten (Freeze, Chatkontrolle, Autofokus, Ein/Aus) mit 2 LEDs integriert (rot grün)
-- MAX3232 für UART 
+X- Potentiometer (für zB Zoomstufe)
+X- Inkrementalgeber mit Tastefunktion (Für zB Menü, ...)
+X- OLED-Display 0,96"
+X- Tasten (Freeze, Chatkontrolle, Autofokus, Ein/Aus) mit 2 LEDs integriert (rot grün)
+X- MAX3232 für UART 
 
 Durchmesser Poti/Inkrementalgeberknopf: 25mm
 

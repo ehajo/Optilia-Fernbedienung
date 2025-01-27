@@ -66,18 +66,45 @@ def send_zoom_command(level):
     uart.write(bytearray(command))
     print(f"Zoom auf {level}x gesendet: {command}")
 
+# Funktion zur Umrechnung des Potentiometerwerts in eine Zoomstufe
+def adc_to_zoom_level(adc_value):
+    max_zoom = max(ZOOM_LEVELS.keys())
+    min_zoom = min(ZOOM_LEVELS.keys())
+    return int((adc_value / 65535) * (max_zoom - min_zoom) + min_zoom)
+
+# Funktion zur Hysterese auf den ADC-Wert
+def apply_hysteresis_to_adc(adc_value, last_adc_value, hysteresis=1000):
+    if last_adc_value is None or abs(adc_value - last_adc_value) > hysteresis:
+        return adc_value
+    return last_adc_value
+
+# Hauptprogramm: Steuerung über das Potentiometer mit Hysterese
+last_adc_value = None
+last_zoom_level = None
 
 # Hauptprogramm: Steuerung mit Rückmeldungsanalyse
 # Autofokus einschalten:
 uart.write(bytearray([0x81,0x01,0x04,0x38,0x02,0xFF]))
-last_zoom_level = None
+uart.write(bytearray([0x81,0x01,0x04,0x74,0x3F,0xFF]))
+uart.write(bytearray([0x81,0x01,0x04,0x39,0x00,0xFF]))
+uart.write(bytearray([0x81,0x01,0x04,0x35,0x00,0xFF]))
+
 while True:
-    # Zoomstufe berechnen und senden
+    # Lese den aktuellen ADC-Wert
     current_adc_value = poti.value
-    current_zoom_level = int((current_adc_value / 65535) * 30) + 1
+
+    # Wende Hysterese auf den ADC-Wert an
+    filtered_adc_value = apply_hysteresis_to_adc(current_adc_value, last_adc_value, hysteresis=1000)
+
+    # Berechne die Zoomstufe aus dem gefilterten ADC-Wert
+    current_zoom_level = adc_to_zoom_level(filtered_adc_value)
+
+    # Sende den neuen Zoombefehl, falls sich die Zoomstufe geändert hat
     if current_zoom_level != last_zoom_level:
         send_zoom_command(current_zoom_level)
         last_zoom_level = current_zoom_level
 
-    
-    time.sleep(0.2)  # Kurze Verzögerung für Stabilität
+    # Aktualisiere den letzten ADC-Wert
+    last_adc_value = filtered_adc_value
+
+    time.sleep(0.1)  # Kurze Verzögerung für Stabilität
