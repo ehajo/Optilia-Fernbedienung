@@ -2,12 +2,34 @@ import time
 import board
 import busio
 import analogio
+import digitalio
+from adafruit_ssd1306 import SSD1306_I2C
 
-# UART-Verbindung einrichten (TX = GP4, RX = GP5)
+# I2C-Setup für das OLED-Display (SCL=GP1, SDA=GP0)
+i2c = busio.I2C(scl=board.GP1, sda=board.GP0)  # SCL=GP1, SDA=GP0
+WIDTH = 128
+HEIGHT = 64
+
+# OLED-Display initialisieren
+oled = SSD1306_I2C(WIDTH, HEIGHT, i2c)
+
+# UART-Verbindung einrichten (für die Kamera, TX=GP4, RX=GP5)
 uart = busio.UART(tx=board.GP4, rx=board.GP5, baudrate=9600, timeout=1)
 
 # Potentiometer-Setup (analoger Eingang, z. B. GP26/ADC0)
 poti = analogio.AnalogIn(board.A0)  # GPIO26 = ADC0
+
+# Taste für Autofokus-Umschaltung (an GP16, gegen Masse schaltend)
+focus_button = digitalio.DigitalInOut(board.GP16)
+focus_button.direction = digitalio.Direction.INPUT
+focus_button.pull = digitalio.Pull.UP  # Interner Pull-Up-Widerstand
+
+# LEDs für Autofokus-Anzeige
+green_led = digitalio.DigitalInOut(board.GP17)  # Autofokus EIN
+green_led.direction = digitalio.Direction.OUTPUT
+
+red_led = digitalio.DigitalInOut(board.GP18)  # Autofokus AUS
+red_led.direction = digitalio.Direction.OUTPUT
 
 # Zoomstufen-Definitionen (HEX) für VISCA-Befehle
 ZOOM_LEVELS = {
@@ -43,68 +65,115 @@ ZOOM_LEVELS = {
     30: 0x3FFF,
 }
 
-# Funktion zur Erzeugung eines VISCA-Befehls für eine beliebige Zoomstufe
-def get_zoom_command_from_level(level):
+# Autofokus-Befehle
+AUTOFOCUS_ON = [0x81, 0x01, 0x04, 0x38, 0x02, 0xFF]
+AUTOFOCUS_OFF = [0x81, 0x01, 0x04, 0x38, 0x03, 0xFF]
+
+# Funktion: Ladeanimation anzeigen
+def show_loading_animation():
+    oled.fill(0)
+    oled.text("System startet...", 10, 10, 1)
+    oled.show()
+    for i in range(0, 128, 8):  # Ladebalken in Schritten von 8 Pixeln
+        oled.fill_rect(0, 30, i, 10, 1)  # Rechteck für Ladebalken
+        oled.show()
+        time.sleep(0.625)  # Gesamtdauer: ca. 10 Sekunden
+    oled.fill(0)
+    oled.text("Bereit!", 40, 30, 1)
+    oled.show()
+    time.sleep(1)
+
+# Funktion zur Erstellung des VISCA-Befehls für die Zoomstufe
+def get_zoom_command(level):
     if level not in ZOOM_LEVELS:
         raise ValueError(f"Zoomstufe {level} ist nicht definiert.")
-    zoom_value_hex = ZOOM_LEVELS[level]
+    zoom_hex = ZOOM_LEVELS[level]
     return [
-        0x81,  # Header (Adresse)
+        0x81,  # Header
         0x01,  # Command Type
         0x04,  # Category (Lens)
         0x47,  # Command (Zoom Absolute Position)
-        (zoom_value_hex >> 12) & 0x0F,  # High nibble von Byte 1
-        (zoom_value_hex >> 8) & 0x0F,   # Low nibble von Byte 1
-        (zoom_value_hex >> 4) & 0x0F,   # High nibble von Byte 2
-        zoom_value_hex & 0x0F,          # Low nibble von Byte 2
+        (zoom_hex >> 12) & 0x0F,  # High nibble Byte 1
+        (zoom_hex >> 8) & 0x0F,   # Low nibble Byte 1
+        (zoom_hex >> 4) & 0x0F,   # High nibble Byte 2
+        zoom_hex & 0x0F,          # Low nibble Byte 2
         0xFF   # Terminator
     ]
 
-# Funktion, um einen Zoombefehl über UART zu senden
-def send_zoom_command(level):
-    command = get_zoom_command_from_level(level)
+# Funktion, um einen Befehl über UART zu senden
+def send_command(command):
     uart.write(bytearray(command))
-    print(f"Zoom auf {level}x gesendet: {command}")
+    print(f"Befehl gesendet: {command}")
 
 # Funktion zur Umrechnung des Potentiometerwerts in eine Zoomstufe
 def adc_to_zoom_level(adc_value):
     max_zoom = max(ZOOM_LEVELS.keys())
     min_zoom = min(ZOOM_LEVELS.keys())
-    return int((adc_value / 65535) * (max_zoom - min_zoom) + min_zoom)
+    # Invertiere die Richtung: Höherer ADC-Wert = kleinerer Zoom
+    return int(((65535 - adc_value) / 65535) * (max_zoom - min_zoom) + min_zoom)
 
 # Funktion zur Hysterese auf den ADC-Wert
-def apply_hysteresis_to_adc(adc_value, last_adc_value, hysteresis=1000):
+def apply_hysteresis(adc_value, last_adc_value, hysteresis=1000):
     if last_adc_value is None or abs(adc_value - last_adc_value) > hysteresis:
         return adc_value
     return last_adc_value
 
-# Hauptprogramm: Steuerung über das Potentiometer mit Hysterese
+# Funktion: Zoomfaktor und Fokusstatus auf dem Display anzeigen
+def display_status(zoom_level, is_autofocus):
+    oled.fill(0)  # Lösche das Display
+    oled.text(f"Zoom: {zoom_level}x", 10, 30, 1)  # Schreibe den Zoom mittig
+    focus_text = "AF" if is_autofocus else "MF"  # Autofokusstatus
+    oled.text(focus_text, 0, HEIGHT - 10, 1)  # Schreibe AF/MF unten links
+    oled.show()  # Aktualisiere das Display
+
+# Funktion zur Umschaltung des Autofokus
+def toggle_autofocus(current_focus_state, zoom_level):
+    if current_focus_state:  # Autofokus EIN -> AUS schalten
+        send_command(AUTOFOCUS_OFF)
+        green_led.value = False
+        red_led.value = True
+    else:  # Autofokus AUS -> EIN schalten
+        send_command(AUTOFOCUS_ON)
+        green_led.value = True
+        red_led.value = False
+    display_status(zoom_level, not current_focus_state)  # Aktualisiere den Status
+    return not current_focus_state
+
+# Hauptprogramm: Vorbereitung
+show_loading_animation()  # Ladeanimation anzeigen
+send_command(AUTOFOCUS_ON)  # Autofokus sicherstellen
+green_led.value = True
+red_led.value = False
+
+# Variablen für Hauptschleife
 last_adc_value = None
 last_zoom_level = None
+autofocus_state = True  # Startzustand: Autofokus EIN
 
-# Hauptprogramm: Steuerung mit Rückmeldungsanalyse
-# Autofokus einschalten:
-uart.write(bytearray([0x81,0x01,0x04,0x38,0x02,0xFF]))
-uart.write(bytearray([0x81,0x01,0x04,0x74,0x3F,0xFF]))
-uart.write(bytearray([0x81,0x01,0x04,0x39,0x00,0xFF]))
-uart.write(bytearray([0x81,0x01,0x04,0x35,0x00,0xFF]))
-
+# Hauptprogramm: Steuerung mit Potentiometer, Autofokus und Displayausgabe
 while True:
     # Lese den aktuellen ADC-Wert
     current_adc_value = poti.value
 
-    # Wende Hysterese auf den ADC-Wert an
-    filtered_adc_value = apply_hysteresis_to_adc(current_adc_value, last_adc_value, hysteresis=1000)
+    # Wende Hysterese an
+    filtered_adc_value = apply_hysteresis(current_adc_value, last_adc_value)
 
-    # Berechne die Zoomstufe aus dem gefilterten ADC-Wert
+    # Berechne die aktuelle Zoomstufe
     current_zoom_level = adc_to_zoom_level(filtered_adc_value)
 
-    # Sende den neuen Zoombefehl, falls sich die Zoomstufe geändert hat
+    # Aktualisiere, wenn sich die Zoomstufe geändert hat
     if current_zoom_level != last_zoom_level:
-        send_zoom_command(current_zoom_level)
-        last_zoom_level = current_zoom_level
+        send_command(get_zoom_command(current_zoom_level))  # Sende den Zoom-Befehl
+        display_status(current_zoom_level, autofocus_state)  # Zeige Zoom & AF/MF an
+        last_zoom_level = current_zoom_level  # Aktualisiere den letzten Zoomwert
 
-    # Aktualisiere den letzten ADC-Wert
+    # Prüfe die Taste für Autofokus-Umschaltung
+    if not focus_button.value:  # Taste gedrückt (LOW)
+        autofocus_state = toggle_autofocus(autofocus_state, current_zoom_level)
+        time.sleep(0.5)  # Entprellung der Taste
+
+    # Speichere den letzten ADC-Wert
     last_adc_value = filtered_adc_value
 
-    time.sleep(0.1)  # Kurze Verzögerung für Stabilität
+    # Kurze Verzögerung
+    time.sleep(0.1)
