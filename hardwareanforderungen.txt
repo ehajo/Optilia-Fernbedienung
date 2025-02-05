@@ -10,3 +10,5 @@ X- MAX3232 für UART
 
 Durchmesser Poti/Inkrementalgeberknopf: 25mm
 
+inkrementalgeber höhe 13mm. unten 3mm hoch: 7mm durchmesser ausnehmen.
+knopf gesamthöhe 15mm

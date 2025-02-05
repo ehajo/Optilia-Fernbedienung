@@ -15,3 +15,12 @@ Dank aufmerksamer Zuschauer konnte herausgefunden werden,
 dass es sich bei dem Protokoll der Kamera um das Visca-Protokoll für Sony-Cams handelt.
 
 Im Speziellen um die Ansteuerung für die Kamera Sony FCB-EV5500, welches wir dank Vendor und Product ID rausfinden konnten.
+
+Die Ansteuerung per Twitch-Chat erfolgt über die API.
+Dafür muss auf
+https://dev.twitch.tv/console
+eine Anwendung registriert werden. Name beliebig vergeben, Redirect URL muss http://localhost sein.
+Kategorie zB Application Integration. Sobald man das erledigt hat, erhält man die Client-ID.
+
+Um den Chat zu lesen und dort zu schreiben, benötigt der Bot chat:read und chat:edit:
+http://localhost/#access_token=DEIN_ACCESS_TOKEN&scope=chat:read+chat:edit&token_type=bearer
