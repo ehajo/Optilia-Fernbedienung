@@ -1,3 +1,13 @@
+# ---------------------------
+# Visca-basierte Controller Software
+# für Optilia Mikroskope
+# Basierend auf Raspberry Pi pico W 
+# MAX3232 für UART
+# mit bestem Dank an ChatGPT für die doch
+# meist brauchbare Hilfe beim Coden!
+# (C) eHaJo, 2024-2025
+# ---------------------------
+
 import time
 import json
 import board
@@ -70,7 +80,6 @@ power_led_green.direction = digitalio.Direction.OUTPUT
 
 power_led_red = digitalio.DigitalInOut(board.GP13)
 power_led_red.direction = digitalio.Direction.OUTPUT
-power_led_red.value = True
 
 # ---------------------------
 # LEDs für Connected-Modus (Twitch Status)
@@ -117,6 +126,41 @@ def set_freeze_overlay(is_freeze):
         send_command([0x73, 0x20, 0x42, 0x42, 0x42, 0x42, 0x42, 0x42, 0x42, 0x42, 0x42, 0x42])
         send_command([0x62, 0x03])
 
+# ---------------------------
+# Neue Funktion: Bitmap zeichnen
+# ---------------------------
+def draw_bitmap(bitmap, x, y, width=8, height=8):
+    for j in range(height):
+        row = bitmap[j]
+        for i in range(width):
+            if row & (1 << (7 - i)):
+                oled.pixel(x + i, y + j, 1)
+            else:
+                oled.pixel(x + i, y + j, 0)
+
+# Zwei 8x8 Bitmaps für den Twitch-Status (Smiley)
+# Lachender Smiley (verbunden)
+laughing_smiley = [
+    0x3C,  # 00111100
+    0x42,  # 01000010
+    0xA5,  # 10100101
+    0x81,  # 10000001
+    0xA5,  # 10100101
+    0x99,  # 10011001
+    0x42,  # 01000010
+    0x3C   # 00111100
+]
+# Trauriger Smiley (nicht verbunden)
+sad_smiley = [
+    0x3C,
+    0x42,
+    0xA5,
+    0x81,
+    0x99,  # veränderte Zeile für frown
+    0xA5,
+    0x42,
+    0x3C
+]
 
 # ---------------------------
 # Display-Status für Kamera-Steuerung (unterer Bereich)
@@ -139,8 +183,18 @@ def display_status(zoom_level, is_autofocus, is_freeze, override):
 # ---------------------------
 def update_connection_status(wifi_status, twitch_status):
     oled.fill_rect(50, 0, WIDTH-50, 20, 0)
-    oled.text(wifi_status, 50, 0, 1)
-    oled.text(twitch_status, 50, 10, 1)
+    oled.text("WiFi:", 70, 0, 1)
+    oled.text("Twitch:", 70, 10, 1)
+    # Zeige Smiley für WiFi
+    if wifi_status == 1:
+        draw_bitmap(laughing_smiley, 120, 0)
+    else:
+        draw_bitmap(sad_smiley, 120, 0)
+    # Zeige Smiley für Twitch
+    if twitch_status == 1:
+        draw_bitmap(laughing_smiley, 120, 10)
+    else:
+        draw_bitmap(sad_smiley, 120, 10)
     oled.show()
 
 # ---------------------------
@@ -188,9 +242,11 @@ oled.fill(0)
 oled.text("Starting...", 0, 0, 1)
 oled.show()
 print("WiFi verbinden...")
+oled.text("WiFi connecting...", 0, 10, 1)
+oled.show()
 wifi.radio.connect(WIFI_SSID, WIFI_PASSWORD)
 print("WiFi verbunden!")
-oled.text("WiFi connected...", 0, 10, 1)
+oled.text("WiFi connected...", 0, 20, 1)
 oled.show()
 time.sleep(0.5)
 
@@ -209,7 +265,7 @@ send_command([0x3E, 0x02]) # Exposure Comp On
 send_command([0x4E, 0x00, 0x00, 0x00, 0x04]) # exp fix for perfect lightning
 send_command([0x35, 0x03]) # Weißabgleich OnePush
 send_command([0x62, 0x03]) # Freeze off
-#send_command([0x00, 0x03]) # Kamera ausschalten
+send_command([0x00, 0x03]) # Kamera ausschalten
 power_led_red.value = True
 power_led_green.value = False
 connected_led_green.value = False
@@ -233,8 +289,8 @@ def connect_twitch():
     twitch_sock.send(bytes("CAP REQ :twitch.tv/commands\r\n", "utf-8"))
     twitch_sock.send(bytes("JOIN #" + TWITCH_CHANNEL + "\r\n", "utf-8"))
     print("Mit Twitch IRC verbunden. Gejoint: #" + TWITCH_CHANNEL)
-    send_chat_message("[Optilia] Kamera Online!!")
-    update_connection_status("WiFi: connected", "Twitch: connected")
+    send_chat_message("ehajoOptilia Kamera Online!!")
+    update_connection_status(1, 1)
 
 # ---------------------------
 # Funktion: Twitch-IRC-Verbindung trennen
@@ -243,12 +299,12 @@ def disconnect_twitch():
     global twitch_sock
     if twitch_sock:
         try:
-            send_chat_message("[Optilia] Kamera Offline!")
+            send_chat_message("ehajoOptilia Kamera Offline!")
             twitch_sock.close()
         except Exception:
             pass
         twitch_sock = None
-    update_connection_status("WiFi: connected", "Twitch: off")
+    update_connection_status(1, 0)
     print("Twitch IRC getrennt.")
 
 # ---------------------------
@@ -305,32 +361,32 @@ def check_twitch_messages(sock):
             # Jetzt den !zoom-Befehl auswerten:
             current_time = time.monotonic()
             if current_time < zoom_cooldown:
-                send_chat_message("Optilia: Bitte warte 10 Sekunden, bevor du einen neuen Befehl sendest.")
+                send_chat_message("ehajoOptilia Bitte warte 10 Sekunden, bevor du einen neuen Befehl sendest.")
                 return None
             # Zerlege den Befehl; angenommen, der Befehl steht nach " :"
             cmd_parts = message_body.split(" :", 1)[1].strip().split()
             if len(cmd_parts) != 2:
-                send_chat_message("Optilia: !zoom 1x bis 30x")
+                send_chat_message("ehajoOptilia !zoom 1x bis 30x")
                 return None
             arg = cmd_parts[1].lower()
             if arg == "auto":
-                send_chat_message("Optilia: Zoom-Auto aktiviert!")
+                send_chat_message("ehajoOptilia Zoom-Auto aktiviert!")
                 zoom_cooldown = current_time + 10
                 return "auto"
             try:
                 zoom_val = int(arg.replace("x", ""))
                 if 1 <= zoom_val <= 30:
-                    send_chat_message("Optilia: Zoom auf {}x gestellt!".format(zoom_val))
+                    send_chat_message("ehajoOptilia Zoom auf {}x gestellt!".format(zoom_val))
                     zoom_cooldown = current_time + 10
                     # Zeige Overlay mit Zuschauernamen
                     print("Viewername: ", viewer_name)
                     overlay_text(viewer_name)
                     return zoom_val
                 else:
-                    send_chat_message("Optilia: !zoom 1x bis 30x")
+                    send_chat_message("ehajoOptilia !zoom 1x bis 30x")
                     return None
             except ValueError:
-                send_chat_message("Optilia: !zoom 1x bis 30x")
+                send_chat_message("ehajoOptilia !zoom 1x bis 30x")
                 return None
     return None
 
@@ -384,7 +440,7 @@ def overlay_text(viewer_name):
 # Ermittele Twitch-Benutzernamen über Helix-API
 # ---------------------------
 
-oled.text("Twitch verbinden...", 0, 20, 1)
+oled.text("Twitch verbinden...", 0, 30, 1)
 oled.show()
 pool = socketpool.SocketPool(wifi.radio)
 session = adafruit_requests.Session(pool, ssl.create_default_context())
@@ -401,8 +457,7 @@ if "data" in data and len(data["data"]) > 0:
 else:
     raise RuntimeError("Konnte den Twitch-Benutzernamen nicht ermitteln")
 print("Ermittelter Twitch-Username:", TWITCH_USERNAME)
-#update_connection_status("WiFi: connected", "Twitch: off")
-oled.text("Twitch verbunden!  ", 0, 30, 1)
+oled.text("Twitch verbunden!  ", 0, 40, 1)
 oled.show()
 time.sleep(0.5)
 oled.fill(0)
@@ -432,7 +487,7 @@ while True:
             autofocus_led_red.value = False
             freeze_led_green.value = True
             freeze_led_red.value = False
-            update_connection_status("WiFi: connected", "Twitch: off")
+            update_connection_status(1, 0)
         else:
             send_command([0x00, 0x03])  # Kamera AUS
             power_led_red.value = True
@@ -440,7 +495,7 @@ while True:
             if twitch_enabled:
                 disconnect_twitch()
                 twitch_enabled = False
-            update_connection_status("WiFi: connected", "Twitch: off")
+            update_connection_status(1, 0)
             oled.fill(0)
             oled.show()
             autofocus_led_green.value = False
@@ -452,7 +507,7 @@ while True:
             # Cache zurücksetzen, damit beim nächsten Einschalten ein Update erzwungen wird:
             last_zoom_value = None
             last_override = None
-        time.sleep(0.2)
+        time.sleep(0.1)
 
     # Im System-On-Zustand: Falls Twitch nicht aktiviert, Connected-LED (GP11) soll rot leuchten
     if system_on and not twitch_enabled:
@@ -462,7 +517,7 @@ while True:
     # Connected-Modus (Twitch) schalten – reagiert nur, wenn System an ist
     if system_on:
         if not connected_button.value:
-            time.sleep(0.1)
+            #time.sleep(0.1)
             twitch_enabled = not twitch_enabled
             if twitch_enabled:
                 connect_twitch()
@@ -472,7 +527,7 @@ while True:
                 disconnect_twitch()
                 connected_led_green.value = False
                 connected_led_red.value = True
-            time.sleep(0.2)
+            time.sleep(0.1)
 
     # Wenn System an und Twitch aktiviert, werden Twitch-Chatbefehle ausgewertet
     if system_on and twitch_enabled and twitch_sock is not None:
@@ -506,6 +561,7 @@ while True:
             is_override = False
         
         if (current_zoom_level != last_zoom_value) or (is_override != last_override):
+            display_status(current_zoom_level, autofocus_state, freeze_state, override=is_override)
             visca_val = ZOOM_LEVELS[current_zoom_level]
             send_command([
                 0x47,
@@ -514,7 +570,6 @@ while True:
                 (visca_val >> 4) & 0x0F,
                 visca_val & 0x0F
             ])
-            display_status(current_zoom_level, autofocus_state, freeze_state, override=is_override)
             last_zoom_value = current_zoom_level
             last_override = is_override
 
@@ -531,4 +586,4 @@ while True:
             display_status(current_zoom_level, autofocus_state, freeze_state, override=is_override)
             time.sleep(0.1)
     
-    time.sleep(0.1)
+    time.sleep(0.01)
