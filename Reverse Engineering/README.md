@@ -33,8 +33,8 @@ Für dieses Projekt benötigst du folgende Hardware:
 
 - **Raspberry Pi Pico W** (oder ein kompatibles Board mit WLAN)
 - **OLED-Display** (z. B. SSD1306, I²C, 128×64 Pixel)
-- **UART-Verbindung** zur Kamera (VISCA-Steuerung)
-- **Potentiometer** (z. B. 10 kΩ) für die Zoomsteuerung
+- **UART-Verbindung** zur Kamera (VISCA-Steuerung) mit zB MAX3232
+- **Potentiometer** (z. B. 10 kΩ linear) für die Zoomsteuerung
 - **Taster** für:  
   - **Power:** (EIN/AUS, z. B. an GP15)  
   - **Fokus:** (AF/MF, z. B. an GP16)  
@@ -45,12 +45,15 @@ Für dieses Projekt benötigst du folgende Hardware:
   - **Connected-LEDs:**  
     - Eine LED (z. B. an GP10, grün) leuchtet, wenn die Twitch-Verbindung aktiv ist  
     - Eine LED (z. B. an GP9, rot) zeigt an, dass der Connected-Modus nicht aktiviert ist
+- **Passende Taster**, die bereits die zwei LEDs enthalten gibt es zB von Würth:
+  - Artikelnr.: 440VR67082622
 - **Verkabelung:**  
   - I²C-Leitungen (SCL, SDA) zum OLED-Display  
-  - UART-Leitungen (TX, RX) zur Kamera  
+  - UART-Leitungen (TX, RX) zur Kamera, bei mir direkt gelötet bzw mit Steckverbinder
   - Analoger Eingang für das Potentiometer  
-  - Digitale Eingänge für die Taster (mit Pull-Up-Widerständen, falls nicht intern vorhanden)  
+  - Digitale Eingänge für die Taster (mit Entprellung, Pullup intern genutzt)  
   - Digitale Ausgänge für die LEDs
+- **PCB:** Grundlegend einfach die Platine, die im Hardware-Bereich des Projekts hier auf dem Dokuwiki ist.
 
 ## Software & Installation
 
@@ -134,7 +137,3 @@ Für dieses Projekt benötigst du folgende Hardware:
 
 - **Optimierung:**  
   VISCA-Befehle und Display-Updates werden nur gesendet, wenn sich relevante Werte (z. B. Zoomwert oder Override) geändert haben.
-
-## Lizenz
-
-Dieses Projekt ist Open Source und wird unter der MIT License bereitgestellt. Weitere Details findest du in der [LICENSE](LICENSE)-Datei.
