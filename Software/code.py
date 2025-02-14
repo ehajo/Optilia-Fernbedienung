@@ -289,7 +289,7 @@ def connect_twitch():
     twitch_sock.send(bytes("CAP REQ :twitch.tv/commands\r\n", "utf-8"))
     twitch_sock.send(bytes("JOIN #" + TWITCH_CHANNEL + "\r\n", "utf-8"))
     print("Mit Twitch IRC verbunden. Gejoint: #" + TWITCH_CHANNEL)
-    send_chat_message("ehajoOptilia Kamera Online!!")
+    ### send_chat_message("ehajoOptilia Kamera Online!!")
     update_connection_status(1, 1)
 
 # ---------------------------
@@ -340,55 +340,52 @@ def check_twitch_messages(sock):
                     tags[key] = value
                 else:
                     tags[token] = ""
-        # print("IRC:", line)
+        print("IRC:", line)
         if line.startswith("PING"):
             sock.send(bytes("PONG :tmi.twitch.tv\r\n", "utf-8"))
-        elif "PRIVMSG" in message_body and "!zoom" in message_body:
-            # Prüfe, ob die Nachricht hervorgehoben ist
-            if not (("msg-id" in tags and tags["msg-id"] == "highlighted-message") or ("highlighted" in tags and tags["highlighted"] == "1")):
-                print("Nachricht nicht hervorgehoben, ignoriere!")
+        elif "PRIVMSG" in message_body:
+            # Prüfe, ob der Custom Reward gesetzt ist:
+            if not ("custom-reward-id" in tags and tags["custom-reward-id"] == "66cbd19b-5a24-49cf-affd-412fc5b2b31d"):
+                print("Nachricht ohne Custom Reward, ignoriere!")
                 continue
-            # Extrahiere den Zuschauernamen aus den Tags, falls vorhanden
+
+            # Extrahiere den Zuschauernamen (aus "display-name" oder als Fallback)
             if "display-name" in tags and tags["display-name"]:
                 viewer_name = tags["display-name"]
             else:
-                # Fallback: aus dem Präfix der Nachricht
                 if message_body.startswith(":"):
                     viewer_name = message_body[1:].split("!")[0]
                 else:
                     viewer_name = "UNKNOWN"
+            # Zeige den Zuschauernamen als Overlay
+            overlay_text(viewer_name)
             
-            # Jetzt den !zoom-Befehl auswerten:
-            current_time = time.monotonic()
-            if current_time < zoom_cooldown:
-                send_chat_message("ehajoOptilia Bitte warte 10 Sekunden, bevor du einen neuen Befehl sendest.")
-                return None
-            # Zerlege den Befehl; angenommen, der Befehl steht nach " :"
-            cmd_parts = message_body.split(" :", 1)[1].strip().split()
-            if len(cmd_parts) != 2:
-                send_chat_message("ehajoOptilia !zoom 1x bis 30x")
-                return None
-            arg = cmd_parts[1].lower()
-            if arg == "auto":
-                send_chat_message("ehajoOptilia Zoom-Auto aktiviert!")
-                zoom_cooldown = current_time + 10
-                return "auto"
+            # Nun extrahiere den Zoomwert aus der Nachricht
+            # Wir nehmen an, dass die Nachricht ausschließlich den Zoomwert (mit oder ohne "x") enthält.
+            # Entferne eventuell führende und folgende Leerzeichen:
+            text = message_body.split(" :", 1)[1].strip() if " :" in message_body else message_body.strip()
+            # Optional entferne ein trailing "x" falls vorhanden:
+            if text.endswith("x") or text.endswith("X"):
+                text = text[:-1]
             try:
-                zoom_val = int(arg.replace("x", ""))
+                zoom_val = int(text)
                 if 1 <= zoom_val <= 30:
+                    current_time = time.monotonic()
+                    if current_time < zoom_cooldown:
+                        send_chat_message("ehajoOptilia Bitte warte 10 Sekunden, bevor du einen neuen Befehl sendest.")
+                        return None
                     send_chat_message("ehajoOptilia Zoom auf {}x gestellt!".format(zoom_val))
                     zoom_cooldown = current_time + 10
-                    # Zeige Overlay mit Zuschauernamen
-                    print("Viewername: ", viewer_name)
-                    overlay_text(viewer_name)
                     return zoom_val
                 else:
-                    send_chat_message("ehajoOptilia !zoom 1x bis 30x")
+                    send_chat_message("ehajoOptilia Bitte einen Wert zwischen 1 und 30 eingeben.")
                     return None
             except ValueError:
-                send_chat_message("ehajoOptilia !zoom 1x bis 30x")
+                send_chat_message("ehajoOptilia Ungültiger Zoomwert.")
                 return None
     return None
+
+
 
 # ---------------------------
 # Funktion: Overlay-Text anzeigen (KAMERAKIND: [Zuschauername])
@@ -479,6 +476,13 @@ while True:
         system_on = not system_on
         if system_on:
             send_command([0x00, 0x02])  # Kamera EIN
+            send_command([0x74, 0x1F]) # Textpuffer löschen
+            send_command([0x59, 0x03]) # Spot AE off
+            send_command([0x39, 0x00]) # Brightness Auto
+            send_command([0x3E, 0x02]) # Exposure Comp On
+            send_command([0x4E, 0x00, 0x00, 0x00, 0x04]) # exp fix for perfect lightning
+            send_command([0x35, 0x03]) # Weißabgleich OnePush
+            send_command([0x62, 0x03]) # Freeze off
             power_led_red.value = False
             power_led_green.value = True
             autofocus_state = True
