@@ -521,7 +521,6 @@ while True:
     # Connected-Modus (Twitch) schalten – reagiert nur, wenn System an ist
     if system_on:
         if not connected_button.value:
-            #time.sleep(0.1)
             twitch_enabled = not twitch_enabled
             if twitch_enabled:
                 connect_twitch()
