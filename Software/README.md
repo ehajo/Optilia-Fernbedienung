@@ -10,15 +10,16 @@ Optilia ist ein Open-Source-Projekt, das es ermöglicht, eine Kamera (über VISC
   - Umschalten zwischen Autofokus (AF) und manueller Fokussierung (MF)
 
 - **Twitch-Steuerung**  
-  - `!zoom`-Befehl im Twitch-Chat, der **nur interpretiert wird**, wenn er in hervorgehobenen Nachrichten gesendet wird  
+  - `Zoom`-Befehl im Twitch-Chat, der **nur interpretiert wird**, wenn er die entsprechende Interaktion mit Ohm gesendet wird
+  - Aktuell wird die Zoomstufe für 20s überschrieben
   - Anzeige des Zuschauernamens als Overlay (Format: `KAMERAKIND: [ZUSCHAUERNAME]`)  
-  - 10-Sekunden-Cooldown für `!zoom`-Befehle
+  - Cooldown per Twitch einstellbar
 
 - **OLED-Display**  
   - Anzeige des Kamerastatus im unteren Bereich:  
     - **Links oben:** Fester Text `Freeze`  
     - **Links unten:** AF/MF-Status  
-    - **Rechts unten:** Zoomwert und Modus (`Twitch` oder `Manual`)  
+    - **Rechts unten:** Zoomwert, Modus (`Twitch` oder `Manual`) und Helligkeitsstufe
   - Anzeige des Verbindungsstatus im oberen rechten Bereich:  
     - WiFi-Status (z. B. `WiFi: connected`)  
     - Twitch-Status (z. B. `Twitch: connected` oder `Twitch: off`)  
