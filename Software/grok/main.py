@@ -129,8 +129,8 @@ while True:
     if not pins["power_button"].value and last_button_states["power_button"]:
         print("Power-Taster erkannt")
         state = SystemState.MANUAL if state == SystemState.OFF else SystemState.OFF
-        visca_camera.set_power(state != SystemState.OFF)
         pins["power_led_green"].value = state != SystemState.OFF
+        visca_camera.set_power(state != SystemState.OFF)
         pins["power_led_red"].value = state == SystemState.OFF
         print(f"Power State: {state}")
         if state == SystemState.OFF:

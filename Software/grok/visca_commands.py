@@ -1,6 +1,7 @@
 # visca_commands.py - VISCA-Befehle und Kamerasteuerung
 
 import busio
+import time
 from config import ZOOM_LEVELS
 
 class ViscaCamera:
@@ -19,6 +20,8 @@ class ViscaCamera:
         self.send_command([0x00, 0x02 if on else 0x03])
         if on:
             # Standard-Einstellungen bei Einschalten
+            time.sleep(5) # Kurz warten, bis die Kamera gestartet ist
+            print("On-State Standardwerte an Kamera schicken...")
             self.send_command([0x74, 0x1F])  # Textpuffer löschen
             self.send_command([0x59, 0x03])  # Spot AE off
             self.send_command([0x39, 0x00])  # Brightness Auto
