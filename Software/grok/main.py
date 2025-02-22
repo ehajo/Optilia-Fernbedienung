@@ -79,6 +79,8 @@ brightness = 4  # Standardwert 4
 encoder.position = 4  # Encoder-Wert initial auf 4 setzen
 last_encoder_position = encoder.position  # Initialer Encoder-Wert
 last_display_state = None
+last_viewer = ""  # Letzter Twitch-Nutzername speichern
+last_zoom = None  # Letzter Zoomwert speichern
 
 # Initialzustand der LEDs setzen
 pins["power_led_red"].value = True
@@ -130,6 +132,9 @@ while True:
         print("Power-Taster erkannt")
         state = SystemState.MANUAL if state == SystemState.OFF else SystemState.OFF
         pins["power_led_green"].value = state != SystemState.OFF
+        if state != SystemState.OFF:
+            oled.text("Kamera startet...", 0, 0, 1)
+            oled.show()
         visca_camera.set_power(state != SystemState.OFF)
         pins["power_led_red"].value = state == SystemState.OFF
         print(f"Power State: {state}")
@@ -166,12 +171,14 @@ while True:
     # Connected-Button
     if state != SystemState.OFF and not pins["connected_button"].value and last_button_states["connected_button"]:
         print("Connected-Taster erkannt")
-        pins["connected_led_red"].value = True
         state = SystemState.TWITCH if state == SystemState.MANUAL else SystemState.MANUAL
         if state == SystemState.TWITCH and wifi_connected and twitch:
             twitch.connect()
         elif twitch:
             twitch.disconnect()
+            # Zoom-Text ausblenden, wenn Twitch-Modus verlassen wird
+            visca_camera.set_overlay_text("", line=0x1A)
+            last_zoom = None  # Reset last_zoom
         # LEDs basierend auf Twitch-Verbindung setzen
         if twitch and twitch.connected:
             pins["connected_led_green"].value = False
@@ -189,7 +196,11 @@ while True:
             if result:
                 zoom_override, viewer = result
                 zoom_timeout = time.monotonic() + TWITCH_ZOOM_TIMEOUT
-                visca_camera.set_overlay_text(viewer)
+                last_viewer = viewer
+                print(f"Overlay-Text Zeile 1 gesetzt: KAMERAKIND:")
+                visca_camera.set_overlay_text("KAMERAKIND:", line=0x10, color=0x01)
+                print(f"Overlay-Text Zeile 2 gesetzt: {viewer}")
+                visca_camera.set_overlay_text(viewer, line=0x11, color=0x01)
             # LEDs für Connected-Button aktualisieren
             if twitch.connected:
                 pins["connected_led_green"].value = False
@@ -201,7 +212,18 @@ while True:
         current_time = time.monotonic()
         if zoom_override and current_time > zoom_timeout:
             zoom_override = None
-            visca_camera.set_overlay_text("")
+            last_viewer = ""
+            visca_camera.set_overlay_text("", line=0x10)  # Erste Zeile löschen
+            visca_camera.set_overlay_text("", line=0x11)  # Zweite Zeile löschen
+            print("Overlay-Text gelöscht")
+
+        # Zoomstufe nur bei Änderung anzeigen, wenn Twitch verbunden
+        if state == SystemState.TWITCH and twitch and twitch.connected:
+            zoom = zoom_override if zoom_override else scale_adc_to_zoom(poti.value)
+            if last_zoom != zoom:  # Nur senden, wenn sich der Zoomwert ändert
+                visca_camera.set_zoom_level(zoom, line=0x1A)  # Zoomstufe in Zeile 0x1A, linksbündig
+                last_zoom = zoom
+                print(f"Zoom-Text aktualisiert: {zoom}x")
 
         zoom = zoom_override if zoom_override else scale_adc_to_zoom(poti.value)
         if current_time - last_zoom_time > ZOOM_DEBOUNCE:
