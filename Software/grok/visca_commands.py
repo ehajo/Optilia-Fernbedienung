@@ -87,8 +87,8 @@ class ViscaCamera:
             self.send_command([0x59, 0x03])  # Spot AE off
             self.send_command([0x39, 0x00])  # Brightness Auto
             self.send_command([0x3E, 0x02])  # Exposure Comp On
-            self.send_command([0x4E, 0x00, 0x00, 0x00, 0x04])  # Exp fix
-            self.send_command([0x35, 0x03])  # Weißabgleich OnePush
+            self.send_command([0x4E, 0x00, 0x00, 0x00, 0x04])  # exp fix
+            self.send_command([0x35, 0x07])  # Weißabgleich Indoor und so
             self.send_command([0x62, 0x03])  # Freeze off
             self.send_command([0x38, 0x02])  # Autofokus ein
 
@@ -99,8 +99,12 @@ class ViscaCamera:
         self.uart.write(cmd)
 
     def set_brightness(self, brightness):
-        bright_value = int(brightness * 0x0E / 20)  # Skalierung auf 0-14
-        cmd = bytearray([0x81, 0x01, 0x04, 0xA1, bright_value, 0xFF])
+        high = (brightness >> 4) & 0x0F
+        low = brightness & 0x0F
+        self.send_command([0x4E, 0x00, 0x00, high, low])
+
+    def set_whitebalance(self, whitebalance):
+        cmd = bytearray([0x81, 0x01, 0x04, 0x35, whitebalance, 0xFF])
         self.uart.write(cmd)
 
     def set_autofocus(self, autofocus_on):
